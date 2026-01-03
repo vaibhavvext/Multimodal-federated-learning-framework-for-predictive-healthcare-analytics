@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import os
+import time
 
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import SGDClassifier
@@ -9,9 +10,9 @@ from sklearn.linear_model import SGDClassifier
 # ---------------------------
 # PAGE CONFIG
 # ---------------------------
-st.set_page_config(page_title="MMFL Framework Dashboard", layout="wide")
-st.title("🏥 Multimodal Federated Learning Framework")
-st.caption("Framework Simulation + Monitoring Dashboard (Streamlit-safe)")
+st.set_page_config(page_title="MMFL Realtime Dashboard", layout="wide")
+st.title("🏥 Multimodal Federated Learning – Realtime Dashboard")
+st.caption("Live simulation of federated learning across hospitals")
 
 # ---------------------------
 # LOAD DATA
@@ -33,8 +34,11 @@ for f in CLIENT_FILES:
 # ---------------------------
 # SIDEBAR
 # ---------------------------
-st.sidebar.header("⚙️ Framework Controls")
+st.sidebar.header("⚙️ Controls")
 num_rounds = st.sidebar.slider("Federated Rounds", 1, 10, 5)
+speed = st.sidebar.selectbox("Animation Speed", ["Fast", "Medium", "Slow"])
+
+SLEEP = {"Fast": 0.2, "Medium": 0.5, "Slow": 1.0}[speed]
 
 # ---------------------------
 # PREPROCESSING
@@ -80,78 +84,70 @@ def average_weights(weight_list):
     return coefs, intercepts
 
 # ---------------------------
-# RUN FEDERATED LEARNING (ONCE)
+# UI PLACEHOLDERS
 # ---------------------------
-if "trained" not in st.session_state:
-    st.session_state.trained = False
+round_status = st.empty()
+hospital_status = st.empty()
+server_status = st.empty()
+progress = st.progress(0)
 
-if st.button("🚀 Run Federated Learning"):
+chart_placeholder = st.empty()
+acc_log = []
 
-    acc_log = []
+# ---------------------------
+# RUN REALTIME FL
+# ---------------------------
+if st.button("▶️ Start Federated Learning"):
 
     # Initialize global model
     global_model = init_model()
     global_model.partial_fit(
-        X_parts[0],
-        y_parts[0],
-        classes=np.array([0, 1])
+        X_parts[0], y_parts[0], classes=np.array([0, 1])
     )
-
     global_weights = get_weights(global_model)
-    initial_weights = global_weights
-
-    progress = st.progress(0)
-    status = st.empty()
 
     for rnd in range(num_rounds):
-        status.markdown(f"### 🔁 Federated Round {rnd + 1}/{num_rounds}")
+        round_status.markdown(f"## 🔁 Federated Round {rnd + 1}")
+
         progress.progress((rnd + 1) / num_rounds)
 
         client_weights = []
         accs = []
 
+        # ---- Local Training Phase ----
         for i in range(3):
+            hospital_status.markdown(
+                f"🏥 **Hospital {i+1}** training local model..."
+            )
+            time.sleep(SLEEP)
+
             local_model = init_model()
             set_weights(local_model, global_weights)
 
             X, y = X_parts[i], y_parts[i]
             local_model.partial_fit(X, y, classes=np.array([0, 1]))
 
+            acc = local_model.score(X, y)
+            accs.append(acc)
             client_weights.append(get_weights(local_model))
-            accs.append(local_model.score(X, y))
+
+            hospital_status.markdown(
+                f"🏥 Hospital {i+1} sent update to server ✔️"
+            )
+            time.sleep(SLEEP)
+
+        # ---- Aggregation Phase ----
+        server_status.markdown("🧠 **Server aggregating updates...**")
+        time.sleep(SLEEP)
 
         global_weights = average_weights(client_weights)
-        acc_log.append(float(np.mean(accs)))
+        server_status.markdown("🧠 Aggregation complete ✔️")
+        time.sleep(SLEEP)
 
-    # Store results
-    st.session_state.trained = True
-    st.session_state.acc_log = acc_log
-    st.session_state.initial_weights = initial_weights
-    st.session_state.final_weights = global_weights
+        # ---- Metrics Update ----
+        avg_acc = float(np.mean(accs))
+        acc_log.append(avg_acc)
 
-    st.success("Federated training completed successfully.")
+        chart_placeholder.line_chart(acc_log)
 
-# ---------------------------
-# DASHBOARD VIEW (READ-ONLY)
-# ---------------------------
-if st.session_state.trained:
-
-    st.divider()
-    st.subheader("📊 Federated Learning Dashboard")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("### Accuracy Across Rounds")
-        st.line_chart(st.session_state.acc_log)
-
-    with col2:
-        st.markdown("### Model Drift (Sample Weights)")
-        st.write("Initial weights:")
-        st.write(np.round(st.session_state.initial_weights[0][0][:5], 4))
-        st.write("Final weights:")
-        st.write(np.round(st.session_state.final_weights[0][0][:5], 4))
-
-    st.info(
-        "Dashboard is read-only. Raw hospital data and local models remain private."
-    )
+    st.success("✅ Federated Learning Completed")
