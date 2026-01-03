@@ -19,8 +19,8 @@ from sklearn.metrics import (
 # PAGE CONFIG
 # ---------------------------
 st.set_page_config(page_title="MMFL Realtime Dashboard", layout="wide")
-st.title("🏥 Multimodal Federated Learning – Realtime Evaluation Dashboard")
-st.caption("Round-wise Local Training + Live Federated Learning")
+st.title("🏥 Multimodal Federated Learning – Realtime Framework Dashboard")
+st.caption("Round-wise Evaluation + Live Parameter Updates")
 
 # ---------------------------
 # LOAD DATA
@@ -67,7 +67,7 @@ X_parts = np.split(X_scaled, split_idx)
 y_parts = np.split(y_all, split_idx)
 
 # ---------------------------
-# SHUFFLE & CHUNK DATA PER CLIENT
+# SHUFFLE & CHUNK DATA
 # ---------------------------
 client_chunks = []
 
@@ -75,11 +75,10 @@ for i in range(3):
     X, y = X_parts[i], y_parts[i]
     idx = np.random.permutation(len(X))
     X, y = X[idx], y[idx]
-
-    X_chunks = np.array_split(X, num_rounds)
-    y_chunks = np.array_split(y, num_rounds)
-
-    client_chunks.append((X_chunks, y_chunks))
+    client_chunks.append((
+        np.array_split(X, num_rounds),
+        np.array_split(y, num_rounds),
+    ))
 
 # ---------------------------
 # FL HELPERS
@@ -120,11 +119,13 @@ def evaluate(model, X, y):
 # ---------------------------
 # UI PLACEHOLDERS
 # ---------------------------
-before_col, after_col = st.columns(2)
 round_status = st.empty()
 hospital_status = st.empty()
 server_status = st.empty()
 progress = st.progress(0)
+
+metrics_table = st.empty()
+weights_box = st.empty()
 chart_placeholder = st.empty()
 
 # ---------------------------
@@ -132,45 +133,27 @@ chart_placeholder = st.empty()
 # ---------------------------
 if st.button("▶️ Start Federated Learning"):
 
-    # ========= BEFORE FL (Round 0) =========
-    before_metrics = []
-
-    for i in range(3):
-        model = init_model()
-        X0, y0 = client_chunks[i][0][0], client_chunks[i][1][0]
-        model.partial_fit(X0, y0, classes=np.array([0, 1]))
-        before_metrics.append(evaluate(model, X_parts[i], y_parts[i]))
-
-    with before_col:
-        st.subheader("📉 Before Federated Learning")
-        st.write("Average metrics (local-only, limited data):")
-        st.json({
-            k: float(np.mean([m[k] for m in before_metrics]))
-            for k in ["accuracy", "precision", "recall", "f1", "auc"]
-        })
-
-    # ========= INITIALIZE GLOBAL =========
+    # Initialize global model with first chunk
     global_model = init_model()
     global_model.partial_fit(
         client_chunks[0][0][0],
         client_chunks[0][1][0],
-        classes=np.array([0, 1])
+        classes=np.array([0, 1]),
     )
     global_weights = get_weights(global_model)
 
     acc_log = []
 
-    # ========= FEDERATED ROUNDS =========
+    # ---------- FEDERATED ROUNDS ----------
     for rnd in range(num_rounds):
         round_status.markdown(f"## 🔁 Federated Round {rnd + 1}")
         progress.progress((rnd + 1) / num_rounds)
 
         client_weights = []
-        accs = []
 
         for i in range(3):
             hospital_status.markdown(
-                f"🏥 Hospital {i+1} training on data chunk {rnd + 1}/{num_rounds}"
+                f"🏥 Hospital {i+1} training on chunk {rnd + 1}/{num_rounds}"
             )
             time.sleep(SLEEP)
 
@@ -180,7 +163,6 @@ if st.button("▶️ Start Federated Learning"):
             Xc, yc = client_chunks[i][0][rnd], client_chunks[i][1][rnd]
             local_model.partial_fit(Xc, yc, classes=np.array([0, 1]))
 
-            accs.append(local_model.score(X_parts[i], y_parts[i]))
             client_weights.append(get_weights(local_model))
 
             hospital_status.markdown(f"🏥 Hospital {i+1} sent update ✔️")
@@ -192,26 +174,38 @@ if st.button("▶️ Start Federated Learning"):
         global_weights = average_weights(client_weights)
         server_status.markdown("🧠 Aggregation complete ✔️")
 
-        acc_log.append(float(np.mean(accs)))
-        chart_placeholder.line_chart(acc_log)
+        # ---------- EVALUATE AFTER THIS ROUND ----------
+        round_metrics = []
 
-    # ========= AFTER FL =========
-    after_metrics = []
+        for i in range(3):
+            eval_model = init_model()
+            set_weights(eval_model, global_weights)
+            eval_model.partial_fit(
+                X_parts[i], y_parts[i], classes=np.array([0, 1])
+            )
+            round_metrics.append(evaluate(eval_model, X_parts[i], y_parts[i]))
 
-    for i in range(3):
-        model = init_model()
-        set_weights(model, global_weights)
-        model.partial_fit(
-            X_parts[i], y_parts[i], classes=np.array([0, 1])
-        )
-        after_metrics.append(evaluate(model, X_parts[i], y_parts[i]))
-
-    with after_col:
-        st.subheader("📈 After Federated Learning")
-        st.write("Average metrics (after full data exposure):")
-        st.json({
-            k: float(np.mean([m[k] for m in after_metrics]))
+        avg_metrics = {
+            k: float(np.mean([m[k] for m in round_metrics]))
             for k in ["accuracy", "precision", "recall", "f1", "auc"]
+        }
+
+        acc_log.append(avg_metrics["accuracy"])
+
+        # ---------- UPDATE UI ----------
+        metrics_table.json({
+            "Round": rnd + 1,
+            **avg_metrics
         })
 
-    st.success("✅ Federated Learning Completed with Round-wise Improvement")
+        weights_box.markdown(
+            f"""
+            **Global Weights Snapshot (Round {rnd + 1})**
+            - coef[0][:5]: `{np.round(global_weights[0][0][:5], 4)}`
+            - intercept: `{np.round(global_weights[1][0], 4)}`
+            """
+        )
+
+        chart_placeholder.line_chart(acc_log)
+
+    st.success("✅ Federated Learning Completed with Round-wise Visualization")
