@@ -99,9 +99,6 @@ acc_log = []
 # ---------------------------
 # FEDERATED TRAINING
 # ---------------------------
-progress = st.progress(0)
-status = st.empty()
-
 for rnd in range(num_rounds):
     status.markdown(f"### 🔁 Federated Round {rnd + 1}/{num_rounds}")
     progress.progress((rnd + 1) / num_rounds)
@@ -114,13 +111,16 @@ for rnd in range(num_rounds):
         set_weights(local_model, global_weights)
 
         X, y = X_parts[i], y_parts[i]
-        local_model.partial_fit(X, y)
+
+        # IMPORTANT: classes must be passed on first call
+        local_model.partial_fit(X, y, classes=np.array([0, 1]))
 
         client_weights.append(get_weights(local_model))
         accs.append(local_model.score(X, y))
 
     global_weights = average_weights(client_weights)
     acc_log.append(np.mean(accs))
+
 
 # ---------------------------
 # RESULTS
