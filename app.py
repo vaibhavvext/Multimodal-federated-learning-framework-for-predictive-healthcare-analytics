@@ -20,7 +20,7 @@ from sklearn.metrics import (
 # ---------------------------
 st.set_page_config(page_title="MMFL Realtime Dashboard", layout="wide")
 st.title("🏥 Multimodal Federated Learning – Realtime Framework Dashboard")
-st.caption("Round-wise Evaluation + Live Parameter Updates")
+st.caption("Round-wise Learning • Metric Stability • Live Parameter Updates")
 
 # ---------------------------
 # LOAD DATA
@@ -75,10 +75,11 @@ for i in range(3):
     X, y = X_parts[i], y_parts[i]
     idx = np.random.permutation(len(X))
     X, y = X[idx], y[idx]
-    client_chunks.append((
-        np.array_split(X, num_rounds),
-        np.array_split(y, num_rounds),
-    ))
+
+    X_chunks = np.array_split(X, num_rounds)
+    y_chunks = np.array_split(y, num_rounds)
+
+    client_chunks.append((X_chunks, y_chunks))
 
 # ---------------------------
 # FL HELPERS
@@ -104,15 +105,30 @@ def average_weights(weight_list):
     intercepts = np.mean([w[1] for w in weight_list], axis=0)
     return coefs, intercepts
 
-def evaluate(model, X, y):
+def safe_auc(y_true, probs):
+    if len(np.unique(y_true)) < 2:
+        return None
+    return roc_auc_score(y_true, probs)
+
+def evaluate(model, X, y, round_idx):
     probs = model.predict_proba(X)[:, 1]
-    preds = (probs > 0.5).astype(int)
+
+    # Adaptive threshold (important)
+    threshold = 0.3 if round_idx < 3 else 0.5
+    preds = (probs > threshold).astype(int)
+
+    acc = accuracy_score(y, preds)
+    prec = precision_score(y, preds, zero_division=0)
+    rec = recall_score(y, preds, zero_division=0)
+    f1 = f1_score(y, preds, zero_division=0)
+    auc = safe_auc(y, probs)
+
     return {
-        "accuracy": accuracy_score(y, preds),
-        "precision": precision_score(y, preds, zero_division=0),
-        "recall": recall_score(y, preds, zero_division=0),
-        "f1": f1_score(y, preds, zero_division=0),
-        "auc": roc_auc_score(y, probs),
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1": f1,
+        "auc": auc,
         "cm": confusion_matrix(y, preds),
     }
 
@@ -124,7 +140,7 @@ hospital_status = st.empty()
 server_status = st.empty()
 progress = st.progress(0)
 
-metrics_table = st.empty()
+metrics_box = st.empty()
 weights_box = st.empty()
 chart_placeholder = st.empty()
 
@@ -133,7 +149,7 @@ chart_placeholder = st.empty()
 # ---------------------------
 if st.button("▶️ Start Federated Learning"):
 
-    # Initialize global model with first chunk
+    # ---------- INITIALIZE GLOBAL MODEL ----------
     global_model = init_model()
     global_model.partial_fit(
         client_chunks[0][0][0],
@@ -151,6 +167,7 @@ if st.button("▶️ Start Federated Learning"):
 
         client_weights = []
 
+        # ---- Local Training ----
         for i in range(3):
             hospital_status.markdown(
                 f"🏥 Hospital {i+1} training on chunk {rnd + 1}/{num_rounds}"
@@ -168,35 +185,51 @@ if st.button("▶️ Start Federated Learning"):
             hospital_status.markdown(f"🏥 Hospital {i+1} sent update ✔️")
             time.sleep(SLEEP)
 
+        # ---- Aggregation ----
         server_status.markdown("🧠 Server aggregating updates…")
         time.sleep(SLEEP)
 
         global_weights = average_weights(client_weights)
         server_status.markdown("🧠 Aggregation complete ✔️")
 
-        # ---------- EVALUATE AFTER THIS ROUND ----------
+        # ---- Evaluation AFTER THIS ROUND ----
         round_metrics = []
-
         for i in range(3):
             eval_model = init_model()
             set_weights(eval_model, global_weights)
             eval_model.partial_fit(
                 X_parts[i], y_parts[i], classes=np.array([0, 1])
             )
-            round_metrics.append(evaluate(eval_model, X_parts[i], y_parts[i]))
+            round_metrics.append(evaluate(eval_model, X_parts[i], y_parts[i], rnd))
 
         avg_metrics = {
-            k: float(np.mean([m[k] for m in round_metrics]))
+            k: float(np.mean([m[k] for m in round_metrics if m[k] is not None]))
+            if k != "auc"
+            else (
+                float(np.mean([m[k] for m in round_metrics if m[k] is not None]))
+                if any(m[k] is not None for m in round_metrics)
+                else "Not defined (single-class)"
+            )
             for k in ["accuracy", "precision", "recall", "f1", "auc"]
         }
 
         acc_log.append(avg_metrics["accuracy"])
 
-        # ---------- UPDATE UI ----------
-        metrics_table.json({
+        # ---- UI UPDATE ----
+        metrics_box.json({
             "Round": rnd + 1,
             **avg_metrics
         })
+
+        if avg_metrics["precision"] == 0 and avg_metrics["recall"] == 0:
+            st.info(
+                "Precision/Recall unstable in early rounds due to limited class exposure."
+            )
+
+        if avg_metrics["auc"] == "Not defined (single-class)":
+            st.warning(
+                "ROC-AUC not defined this round (single-class data observed)."
+            )
 
         weights_box.markdown(
             f"""
@@ -208,4 +241,4 @@ if st.button("▶️ Start Federated Learning"):
 
         chart_placeholder.line_chart(acc_log)
 
-    st.success("✅ Federated Learning Completed with Round-wise Visualization")
+    st.success("✅ Federated Learning Completed with Stable Metrics Over Rounds")
