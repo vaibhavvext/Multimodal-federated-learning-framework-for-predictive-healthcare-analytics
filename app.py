@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
 import os
 
 # ---------------------------
@@ -13,7 +13,7 @@ st.title("🏥 Lightweight Federated Learning Simulation")
 
 st.markdown("""
 This app simulates **Federated Learning across 3 hospitals**
-using a lightweight Logistic Regression model.
+using an online learning model suitable for heterogeneous data.
 """)
 
 # ---------------------------
@@ -62,9 +62,12 @@ y_parts = np.split(y_all, split_idx)
 # FL HELPERS
 # ---------------------------
 def init_model():
-    return LogisticRegression(
-        max_iter=200,
-        solver="lbfgs"
+    return SGDClassifier(
+        loss="log_loss",
+        max_iter=1,
+        learning_rate="constant",
+        eta0=0.01,
+        random_state=42
     )
 
 def get_weights(model):
@@ -80,21 +83,16 @@ def average_weights(weight_list):
     return coefs, intercepts
 
 # ---------------------------
-# INITIALIZE GLOBAL WEIGHTS SAFELY
+# INITIALIZE GLOBAL MODEL
 # ---------------------------
-global_weights = None
+global_model = init_model()
+global_model.partial_fit(
+    X_parts[0],
+    y_parts[0],
+    classes=np.array([0, 1])
+)
 
-for i in range(3):
-    if len(np.unique(y_parts[i])) > 1:
-        model = init_model()
-        model.fit(X_parts[i], y_parts[i])
-        global_weights = get_weights(model)
-        break
-
-if global_weights is None:
-    st.error("All clients have single-class data. Cannot train Logistic Regression.")
-    st.stop()
-
+global_weights = get_weights(global_model)
 initial_weights = global_weights
 acc_log = []
 
@@ -112,15 +110,11 @@ for rnd in range(num_rounds):
     accs = []
 
     for i in range(3):
-        # Skip invalid clients
-        if len(np.unique(y_parts[i])) < 2:
-            continue
-
         local_model = init_model()
         set_weights(local_model, global_weights)
 
         X, y = X_parts[i], y_parts[i]
-        local_model.fit(X, y)
+        local_model.partial_fit(X, y)
 
         client_weights.append(get_weights(local_model))
         accs.append(local_model.score(X, y))
