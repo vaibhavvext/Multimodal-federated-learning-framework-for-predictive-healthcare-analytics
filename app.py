@@ -8,9 +8,9 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
     precision_score,
     recall_score,
+    f1_score,
     roc_auc_score,
     confusion_matrix,
 )
@@ -20,7 +20,7 @@ from sklearn.metrics import (
 # ---------------------------
 st.set_page_config(page_title="MMFL Realtime Dashboard", layout="wide")
 st.title("🏥 Multimodal Federated Learning – Realtime Evaluation Dashboard")
-st.caption("Rich Before vs After Evaluation + Live Federated Learning")
+st.caption("Round-wise Local Training + Live Federated Learning")
 
 # ---------------------------
 # LOAD DATA
@@ -43,7 +43,7 @@ for f in CLIENT_FILES:
 # SIDEBAR
 # ---------------------------
 st.sidebar.header("⚙️ Controls")
-num_rounds = st.sidebar.slider("Federated Rounds", 1, 10, 5)
+num_rounds = st.sidebar.slider("Federated Rounds", 2, 10, 5)
 speed = st.sidebar.selectbox("Animation Speed", ["Fast", "Medium", "Slow"])
 SLEEP = {"Fast": 0.15, "Medium": 0.4, "Slow": 0.8}[speed]
 
@@ -65,6 +65,21 @@ lengths = [len(df) for df in dfs]
 split_idx = np.cumsum(lengths)[:-1]
 X_parts = np.split(X_scaled, split_idx)
 y_parts = np.split(y_all, split_idx)
+
+# ---------------------------
+# SHUFFLE & CHUNK DATA PER CLIENT
+# ---------------------------
+client_chunks = []
+
+for i in range(3):
+    X, y = X_parts[i], y_parts[i]
+    idx = np.random.permutation(len(X))
+    X, y = X[idx], y[idx]
+
+    X_chunks = np.array_split(X, num_rounds)
+    y_chunks = np.array_split(y, num_rounds)
+
+    client_chunks.append((X_chunks, y_chunks))
 
 # ---------------------------
 # FL HELPERS
@@ -100,7 +115,6 @@ def evaluate(model, X, y):
         "f1": f1_score(y, preds, zero_division=0),
         "auc": roc_auc_score(y, probs),
         "cm": confusion_matrix(y, preds),
-        "probs": probs,
     }
 
 # ---------------------------
@@ -118,33 +132,35 @@ chart_placeholder = st.empty()
 # ---------------------------
 if st.button("▶️ Start Federated Learning"):
 
-    # ========= BEFORE FL =========
+    # ========= BEFORE FL (Round 0) =========
     before_metrics = []
 
     for i in range(3):
         model = init_model()
-        model.partial_fit(X_parts[i], y_parts[i], classes=np.array([0, 1]))
+        X0, y0 = client_chunks[i][0][0], client_chunks[i][1][0]
+        model.partial_fit(X0, y0, classes=np.array([0, 1]))
         before_metrics.append(evaluate(model, X_parts[i], y_parts[i]))
-
-    before_avg = {
-        k: float(np.mean([m[k] for m in before_metrics if k != "cm" and k != "probs"]))
-        for k in ["accuracy", "precision", "recall", "f1", "auc"]
-    }
 
     with before_col:
         st.subheader("📉 Before Federated Learning")
-        st.json(before_avg)
-        st.write("Confusion Matrix (Hospital 1)")
-        st.write(before_metrics[0]["cm"])
+        st.write("Average metrics (local-only, limited data):")
+        st.json({
+            k: float(np.mean([m[k] for m in before_metrics]))
+            for k in ["accuracy", "precision", "recall", "f1", "auc"]
+        })
 
     # ========= INITIALIZE GLOBAL =========
     global_model = init_model()
-    global_model.partial_fit(X_parts[0], y_parts[0], classes=np.array([0, 1]))
+    global_model.partial_fit(
+        client_chunks[0][0][0],
+        client_chunks[0][1][0],
+        classes=np.array([0, 1])
+    )
     global_weights = get_weights(global_model)
 
     acc_log = []
 
-    # ========= FEDERATED ROUNDS (LIVE) =========
+    # ========= FEDERATED ROUNDS =========
     for rnd in range(num_rounds):
         round_status.markdown(f"## 🔁 Federated Round {rnd + 1}")
         progress.progress((rnd + 1) / num_rounds)
@@ -153,16 +169,18 @@ if st.button("▶️ Start Federated Learning"):
         accs = []
 
         for i in range(3):
-            hospital_status.markdown(f"🏥 Hospital {i+1} training locally…")
+            hospital_status.markdown(
+                f"🏥 Hospital {i+1} training on data chunk {rnd + 1}/{num_rounds}"
+            )
             time.sleep(SLEEP)
 
             local_model = init_model()
             set_weights(local_model, global_weights)
 
-            X, y = X_parts[i], y_parts[i]
-            local_model.partial_fit(X, y, classes=np.array([0, 1]))
+            Xc, yc = client_chunks[i][0][rnd], client_chunks[i][1][rnd]
+            local_model.partial_fit(Xc, yc, classes=np.array([0, 1]))
 
-            accs.append(local_model.score(X, y))
+            accs.append(local_model.score(X_parts[i], y_parts[i]))
             client_weights.append(get_weights(local_model))
 
             hospital_status.markdown(f"🏥 Hospital {i+1} sent update ✔️")
@@ -183,18 +201,17 @@ if st.button("▶️ Start Federated Learning"):
     for i in range(3):
         model = init_model()
         set_weights(model, global_weights)
-        model.partial_fit(X_parts[i], y_parts[i], classes=np.array([0, 1]))
+        model.partial_fit(
+            X_parts[i], y_parts[i], classes=np.array([0, 1])
+        )
         after_metrics.append(evaluate(model, X_parts[i], y_parts[i]))
-
-    after_avg = {
-        k: float(np.mean([m[k] for m in after_metrics if k != "cm" and k != "probs"]))
-        for k in ["accuracy", "precision", "recall", "f1", "auc"]
-    }
 
     with after_col:
         st.subheader("📈 After Federated Learning")
-        st.json(after_avg)
-        st.write("Confusion Matrix (Hospital 1)")
-        st.write(after_metrics[0]["cm"])
+        st.write("Average metrics (after full data exposure):")
+        st.json({
+            k: float(np.mean([m[k] for m in after_metrics]))
+            for k in ["accuracy", "precision", "recall", "f1", "auc"]
+        })
 
-    st.success("✅ Federated Learning Completed with Rich Evaluation")
+    st.success("✅ Federated Learning Completed with Round-wise Improvement")
