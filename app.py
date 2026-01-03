@@ -12,8 +12,8 @@ st.set_page_config(page_title="Federated Learning Simulation", layout="wide")
 st.title("🏥 Lightweight Federated Learning Simulation")
 
 st.markdown("""
-This app simulates **Federated Learning across 3 hospitals** using a lightweight
-logistic regression model suitable for Streamlit deployment.
+This app simulates **Federated Learning across 3 hospitals**
+using a lightweight Logistic Regression model.
 """)
 
 # ---------------------------
@@ -34,9 +34,9 @@ for f in CLIENT_FILES:
     dfs.append(pd.read_csv(f))
 
 # ---------------------------
-# SIDEBAR CONTROLS
+# SIDEBAR
 # ---------------------------
-st.sidebar.header("⚙️ Simulation Settings")
+st.sidebar.header("⚙️ Settings")
 num_rounds = st.sidebar.slider("Federated Rounds", 1, 10, 5)
 
 # ---------------------------
@@ -58,10 +58,8 @@ split_idx = np.cumsum(lengths)[:-1]
 X_parts = np.split(X_scaled, split_idx)
 y_parts = np.split(y_all, split_idx)
 
-input_dim = X_parts[0].shape[1]
-
 # ---------------------------
-# FEDERATED HELPERS
+# FL HELPERS
 # ---------------------------
 def init_model():
     return LogisticRegression(
@@ -73,9 +71,8 @@ def get_weights(model):
     return model.coef_.copy(), model.intercept_.copy()
 
 def set_weights(model, weights):
-    coef, intercept = weights
-    model.coef_ = coef
-    model.intercept_ = intercept
+    model.coef_ = weights[0]
+    model.intercept_ = weights[1]
 
 def average_weights(weight_list):
     coefs = np.mean([w[0] for w in weight_list], axis=0)
@@ -83,14 +80,27 @@ def average_weights(weight_list):
     return coefs, intercepts
 
 # ---------------------------
-# FEDERATED TRAINING
+# INITIALIZE GLOBAL WEIGHTS SAFELY
 # ---------------------------
-global_model = init_model()
-global_model.fit(X_parts[0], y_parts[0])  # warm start
+global_weights = None
 
-initial_weights = get_weights(global_model)
+for i in range(3):
+    if len(np.unique(y_parts[i])) > 1:
+        model = init_model()
+        model.fit(X_parts[i], y_parts[i])
+        global_weights = get_weights(model)
+        break
+
+if global_weights is None:
+    st.error("All clients have single-class data. Cannot train Logistic Regression.")
+    st.stop()
+
+initial_weights = global_weights
 acc_log = []
 
+# ---------------------------
+# FEDERATED TRAINING
+# ---------------------------
 progress = st.progress(0)
 status = st.empty()
 
@@ -102,8 +112,12 @@ for rnd in range(num_rounds):
     accs = []
 
     for i in range(3):
+        # Skip invalid clients
+        if len(np.unique(y_parts[i])) < 2:
+            continue
+
         local_model = init_model()
-        set_weights(local_model, get_weights(global_model))
+        set_weights(local_model, global_weights)
 
         X, y = X_parts[i], y_parts[i]
         local_model.fit(X, y)
@@ -111,20 +125,16 @@ for rnd in range(num_rounds):
         client_weights.append(get_weights(local_model))
         accs.append(local_model.score(X, y))
 
-    new_weights = average_weights(client_weights)
-    set_weights(global_model, new_weights)
-
+    global_weights = average_weights(client_weights)
     acc_log.append(np.mean(accs))
 
 # ---------------------------
 # RESULTS
 # ---------------------------
-final_weights = get_weights(global_model)
-
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📊 Accuracy Trend")
+    st.subheader("📈 Accuracy Trend")
     st.line_chart(acc_log)
 
 with col2:
@@ -132,6 +142,6 @@ with col2:
     st.write("**Initial weights (first 5):**")
     st.write(np.round(initial_weights[0][0][:5], 4))
     st.write("**Final weights (first 5):**")
-    st.write(np.round(final_weights[0][0][:5], 4))
+    st.write(np.round(global_weights[0][0][:5], 4))
 
 st.success("✅ Federated Learning Simulation Complete!")
