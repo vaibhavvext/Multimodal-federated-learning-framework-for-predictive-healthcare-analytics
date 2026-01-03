@@ -1,9 +1,17 @@
+# app.py
+# ------------------------------------------------------------
+# Lightweight Federated Learning Simulation (Streamlit-safe)
+# Uses SGDClassifier (online learning) to handle single-class
+# clients and non-IID data. CPU-only, fast, and stable.
+# ------------------------------------------------------------
+
 import streamlit as st
 import numpy as np
 import pandas as pd
+import os
+
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import SGDClassifier
-import os
 
 # ---------------------------
 # PAGE CONFIG
@@ -12,8 +20,9 @@ st.set_page_config(page_title="Federated Learning Simulation", layout="wide")
 st.title("🏥 Lightweight Federated Learning Simulation")
 
 st.markdown("""
-This app simulates **Federated Learning across 3 hospitals**
-using an online learning model suitable for heterogeneous data.
+This app simulates **Federated Learning across 3 hospitals** using a
+lightweight **online learning model** that is safe to run on Streamlit Cloud.
+No raw data is shared; only model parameters are aggregated.
 """)
 
 # ---------------------------
@@ -23,7 +32,7 @@ DATA_DIR = "data"
 CLIENT_FILES = [
     os.path.join(DATA_DIR, "client_1.csv"),
     os.path.join(DATA_DIR, "client_2.csv"),
-    os.path.join(DATA_DIR, "client_3.csv")
+    os.path.join(DATA_DIR, "client_3.csv"),
 ]
 
 dfs = []
@@ -34,20 +43,20 @@ for f in CLIENT_FILES:
     dfs.append(pd.read_csv(f))
 
 # ---------------------------
-# SIDEBAR
+# SIDEBAR CONTROLS
 # ---------------------------
-st.sidebar.header("⚙️ Settings")
+st.sidebar.header("⚙️ Simulation Settings")
 num_rounds = st.sidebar.slider("Federated Rounds", 1, 10, 5)
 
 # ---------------------------
 # PREPROCESSING
 # ---------------------------
-label_col = dfs[0].columns[-1]
+label_col = dfs[0].columns[-1]  # assume last column is label
 
 le = LabelEncoder()
 scaler = StandardScaler()
 
-combined = pd.concat(dfs, axis=0)
+combined = pd.concat(dfs, axis=0, ignore_index=True)
 X_all = combined.drop(columns=[label_col])
 y_all = le.fit_transform(combined[label_col])
 
@@ -59,7 +68,7 @@ X_parts = np.split(X_scaled, split_idx)
 y_parts = np.split(y_all, split_idx)
 
 # ---------------------------
-# FL HELPERS
+# FEDERATED HELPERS
 # ---------------------------
 def init_model():
     return SGDClassifier(
@@ -67,7 +76,7 @@ def init_model():
         max_iter=1,
         learning_rate="constant",
         eta0=0.01,
-        random_state=42
+        random_state=42,
     )
 
 def get_weights(model):
@@ -83,8 +92,9 @@ def average_weights(weight_list):
     return coefs, intercepts
 
 # ---------------------------
-# INITIALIZE GLOBAL MODEL
+# INITIALIZE GLOBAL MODEL SAFELY
 # ---------------------------
+# We must call partial_fit once with classes=[0,1]
 global_model = init_model()
 global_model.partial_fit(
     X_parts[0],
@@ -94,11 +104,15 @@ global_model.partial_fit(
 
 global_weights = get_weights(global_model)
 initial_weights = global_weights
-acc_log = []
 
 # ---------------------------
 # FEDERATED TRAINING
 # ---------------------------
+acc_log = []
+
+progress = st.progress(0)
+status = st.empty()
+
 for rnd in range(num_rounds):
     status.markdown(f"### 🔁 Federated Round {rnd + 1}/{num_rounds}")
     progress.progress((rnd + 1) / num_rounds)
@@ -112,15 +126,14 @@ for rnd in range(num_rounds):
 
         X, y = X_parts[i], y_parts[i]
 
-        # IMPORTANT: classes must be passed on first call
+        # IMPORTANT: classes must be passed on first partial_fit call
         local_model.partial_fit(X, y, classes=np.array([0, 1]))
 
         client_weights.append(get_weights(local_model))
         accs.append(local_model.score(X, y))
 
     global_weights = average_weights(client_weights)
-    acc_log.append(np.mean(accs))
-
+    acc_log.append(float(np.mean(accs)))
 
 # ---------------------------
 # RESULTS
