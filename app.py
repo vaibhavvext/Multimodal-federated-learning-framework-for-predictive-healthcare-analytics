@@ -1,10 +1,3 @@
-# app.py
-# ------------------------------------------------------------
-# Lightweight Federated Learning Simulation (Streamlit-safe)
-# Uses SGDClassifier (online learning) to handle single-class
-# clients and non-IID data. CPU-only, fast, and stable.
-# ------------------------------------------------------------
-
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -16,14 +9,9 @@ from sklearn.linear_model import SGDClassifier
 # ---------------------------
 # PAGE CONFIG
 # ---------------------------
-st.set_page_config(page_title="Federated Learning Simulation", layout="wide")
-st.title("🏥 Lightweight Federated Learning Simulation")
-
-st.markdown("""
-This app simulates **Federated Learning across 3 hospitals** using a
-lightweight **online learning model** that is safe to run on Streamlit Cloud.
-No raw data is shared; only model parameters are aggregated.
-""")
+st.set_page_config(page_title="MMFL Framework Dashboard", layout="wide")
+st.title("🏥 Multimodal Federated Learning Framework")
+st.caption("Framework Simulation + Monitoring Dashboard (Streamlit-safe)")
 
 # ---------------------------
 # LOAD DATA
@@ -38,20 +26,20 @@ CLIENT_FILES = [
 dfs = []
 for f in CLIENT_FILES:
     if not os.path.exists(f):
-        st.error(f"❌ Dataset not found: {f}")
+        st.error(f"Dataset not found: {f}")
         st.stop()
     dfs.append(pd.read_csv(f))
 
 # ---------------------------
-# SIDEBAR CONTROLS
+# SIDEBAR
 # ---------------------------
-st.sidebar.header("⚙️ Simulation Settings")
+st.sidebar.header("⚙️ Framework Controls")
 num_rounds = st.sidebar.slider("Federated Rounds", 1, 10, 5)
 
 # ---------------------------
 # PREPROCESSING
 # ---------------------------
-label_col = dfs[0].columns[-1]  # assume last column is label
+label_col = dfs[0].columns[-1]
 
 le = LabelEncoder()
 scaler = StandardScaler()
@@ -68,7 +56,7 @@ X_parts = np.split(X_scaled, split_idx)
 y_parts = np.split(y_all, split_idx)
 
 # ---------------------------
-# FEDERATED HELPERS
+# FL HELPERS
 # ---------------------------
 def init_model():
     return SGDClassifier(
@@ -92,63 +80,78 @@ def average_weights(weight_list):
     return coefs, intercepts
 
 # ---------------------------
-# INITIALIZE GLOBAL MODEL SAFELY
+# RUN FEDERATED LEARNING (ONCE)
 # ---------------------------
-# We must call partial_fit once with classes=[0,1]
-global_model = init_model()
-global_model.partial_fit(
-    X_parts[0],
-    y_parts[0],
-    classes=np.array([0, 1])
-)
+if "trained" not in st.session_state:
+    st.session_state.trained = False
 
-global_weights = get_weights(global_model)
-initial_weights = global_weights
+if st.button("🚀 Run Federated Learning"):
+
+    acc_log = []
+
+    # Initialize global model
+    global_model = init_model()
+    global_model.partial_fit(
+        X_parts[0],
+        y_parts[0],
+        classes=np.array([0, 1])
+    )
+
+    global_weights = get_weights(global_model)
+    initial_weights = global_weights
+
+    progress = st.progress(0)
+    status = st.empty()
+
+    for rnd in range(num_rounds):
+        status.markdown(f"### 🔁 Federated Round {rnd + 1}/{num_rounds}")
+        progress.progress((rnd + 1) / num_rounds)
+
+        client_weights = []
+        accs = []
+
+        for i in range(3):
+            local_model = init_model()
+            set_weights(local_model, global_weights)
+
+            X, y = X_parts[i], y_parts[i]
+            local_model.partial_fit(X, y, classes=np.array([0, 1]))
+
+            client_weights.append(get_weights(local_model))
+            accs.append(local_model.score(X, y))
+
+        global_weights = average_weights(client_weights)
+        acc_log.append(float(np.mean(accs)))
+
+    # Store results
+    st.session_state.trained = True
+    st.session_state.acc_log = acc_log
+    st.session_state.initial_weights = initial_weights
+    st.session_state.final_weights = global_weights
+
+    st.success("Federated training completed successfully.")
 
 # ---------------------------
-# FEDERATED TRAINING
+# DASHBOARD VIEW (READ-ONLY)
 # ---------------------------
-acc_log = []
+if st.session_state.trained:
 
-progress = st.progress(0)
-status = st.empty()
+    st.divider()
+    st.subheader("📊 Federated Learning Dashboard")
 
-for rnd in range(num_rounds):
-    status.markdown(f"### 🔁 Federated Round {rnd + 1}/{num_rounds}")
-    progress.progress((rnd + 1) / num_rounds)
+    col1, col2 = st.columns(2)
 
-    client_weights = []
-    accs = []
+    with col1:
+        st.markdown("### Accuracy Across Rounds")
+        st.line_chart(st.session_state.acc_log)
 
-    for i in range(3):
-        local_model = init_model()
-        set_weights(local_model, global_weights)
+    with col2:
+        st.markdown("### Model Drift (Sample Weights)")
+        st.write("Initial weights:")
+        st.write(np.round(st.session_state.initial_weights[0][0][:5], 4))
+        st.write("Final weights:")
+        st.write(np.round(st.session_state.final_weights[0][0][:5], 4))
 
-        X, y = X_parts[i], y_parts[i]
-
-        # IMPORTANT: classes must be passed on first partial_fit call
-        local_model.partial_fit(X, y, classes=np.array([0, 1]))
-
-        client_weights.append(get_weights(local_model))
-        accs.append(local_model.score(X, y))
-
-    global_weights = average_weights(client_weights)
-    acc_log.append(float(np.mean(accs)))
-
-# ---------------------------
-# RESULTS
-# ---------------------------
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("📈 Accuracy Trend")
-    st.line_chart(acc_log)
-
-with col2:
-    st.subheader("⚖️ Weight Comparison (Sample)")
-    st.write("**Initial weights (first 5):**")
-    st.write(np.round(initial_weights[0][0][:5], 4))
-    st.write("**Final weights (first 5):**")
-    st.write(np.round(global_weights[0][0][:5], 4))
-
-st.success("✅ Federated Learning Simulation Complete!")
+    st.info(
+        "Dashboard is read-only. Raw hospital data and local models remain private."
+    )
