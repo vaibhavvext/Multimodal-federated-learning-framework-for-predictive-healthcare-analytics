@@ -1,0 +1,20 @@
+{
+  "label_col": "ExerciseInduced",
+  "hospitals": [
+    {
+      "id": "H1",
+      "name": "Hospital 1",
+      "path": "data/hospitals/hospital_1.csv"
+    },
+    {
+      "id": "H2",
+      "name": "Hospital 2",
+      "path": "data/hospitals/hospital_2.csv"
+    },
+    {
+      "id": "H3",
+      "name": "Hospital 3",
+      "path": "data/hospitals/hospital_3.csv"
+    }
+  ]
+}

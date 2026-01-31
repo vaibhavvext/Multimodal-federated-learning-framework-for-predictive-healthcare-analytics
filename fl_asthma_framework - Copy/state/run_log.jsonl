@@ -1,0 +1,125 @@
+{"event": "round_start", "round": 1, "algo": "weighted_fedavg", "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 1, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 1, "hospital": "H2", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 1, "hospital": "H3", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "aggregate_done", "round": 1, "t": "2026-01-31T02:21:45"}
+{"event": "round_metrics", "round": 1, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.5981486967747722, "global_coef_head": [-0.014352426864206791, -0.03307095170021057, 0.009837308898568153, 0.04597488045692444, -0.005473456345498562], "global_intercept": -2.130159378051758, "t": "2026-01-31T02:21:45"}
+{"event": "round_start", "round": 2, "algo": "weighted_fedavg", "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 2, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 2, "hospital": "H2", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 2, "hospital": "H3", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "aggregate_done", "round": 2, "t": "2026-01-31T02:21:45"}
+{"event": "round_metrics", "round": 2, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6179188372828096, "global_coef_head": [-0.034360721707344055, -0.032775770872831345, 0.04099990800023079, 0.040565915405750275, 0.0008500509429723024], "global_intercept": -2.20231294631958, "t": "2026-01-31T02:21:45"}
+{"event": "round_start", "round": 3, "algo": "weighted_fedavg", "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 3, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 3, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 3, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "aggregate_done", "round": 3, "t": "2026-01-31T02:21:45"}
+{"event": "round_metrics", "round": 3, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6288223615092864, "global_coef_head": [-0.05645671486854553, -0.028271371498703957, 0.0427781343460083, 0.035562075674533844, 0.004499767441302538], "global_intercept": -2.265456438064575, "t": "2026-01-31T02:21:45"}
+{"event": "round_start", "round": 4, "algo": "weighted_fedavg", "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 4, "hospital": "H1", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 4, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 4, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "aggregate_done", "round": 4, "t": "2026-01-31T02:21:45"}
+{"event": "round_metrics", "round": 4, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6341856121213314, "global_coef_head": [-0.03108498454093933, 0.0007772190729156137, 0.02515738643705845, 0.013346685096621513, 0.00450556306168437], "global_intercept": -2.3378100395202637, "t": "2026-01-31T02:21:45"}
+{"event": "round_start", "round": 5, "algo": "weighted_fedavg", "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 5, "hospital": "H1", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 5, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "client_update", "round": 5, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:21:45"}
+{"event": "aggregate_done", "round": 5, "t": "2026-01-31T02:21:45"}
+{"event": "round_metrics", "round": 5, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6389789516432689, "global_coef_head": [-0.025042032822966576, 0.0005127699114382267, 0.0165886040776968, 0.025876598432660103, -0.027616586536169052], "global_intercept": -2.3920273780822754, "t": "2026-01-31T02:21:45"}
+{"event": "round_start", "round": 1, "algo": "fedavg", "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 1, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 1, "hospital": "H2", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 1, "hospital": "H3", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "aggregate_done", "round": 1, "t": "2026-01-31T02:36:14"}
+{"event": "round_metrics", "round": 1, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6290562006048778, "global_coef_head": [-0.02561999298632145, -0.011775985360145569, 0.020716650411486626, 0.037610139697790146, -0.02362213283777237], "global_intercept": -2.4631850719451904, "t": "2026-01-31T02:36:14"}
+{"event": "round_start", "round": 2, "algo": "fedavg", "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 2, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 2, "hospital": "H2", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 2, "hospital": "H3", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "aggregate_done", "round": 2, "t": "2026-01-31T02:36:14"}
+{"event": "round_metrics", "round": 2, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6340883079848623, "global_coef_head": [-0.04420776292681694, -0.017889834940433502, 0.05064289644360542, 0.03463539481163025, -0.016909463331103325], "global_intercept": -2.4942331314086914, "t": "2026-01-31T02:36:14"}
+{"event": "round_start", "round": 3, "algo": "fedavg", "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 3, "hospital": "H1", "samples": 160, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 3, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 3, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "aggregate_done", "round": 3, "t": "2026-01-31T02:36:14"}
+{"event": "round_metrics", "round": 3, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6383483304212523, "global_coef_head": [-0.06594227999448776, -0.017000552266836166, 0.052031274884939194, 0.03060819022357464, -0.012760721147060394], "global_intercept": -2.523599624633789, "t": "2026-01-31T02:36:14"}
+{"event": "round_start", "round": 4, "algo": "fedavg", "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 4, "hospital": "H1", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 4, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 4, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "aggregate_done", "round": 4, "t": "2026-01-31T02:36:14"}
+{"event": "round_metrics", "round": 4, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6390764580228385, "global_coef_head": [-0.039826784282922745, 0.010957871563732624, 0.036022234708070755, 0.009204242378473282, -0.008621257729828358], "global_intercept": -2.5671377182006836, "t": "2026-01-31T02:36:14"}
+{"event": "round_start", "round": 5, "algo": "fedavg", "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 5, "hospital": "H1", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 5, "hospital": "H2", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "client_update", "round": 5, "hospital": "H3", "samples": 159, "t": "2026-01-31T02:36:14"}
+{"event": "aggregate_done", "round": 5, "t": "2026-01-31T02:36:14"}
+{"event": "round_metrics", "round": 5, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6427436565426813, "global_coef_head": [-0.03494802117347717, 0.008791211992502213, 0.025762317702174187, 0.023133495822548866, -0.03895894065499306], "global_intercept": -2.597134828567505, "t": "2026-01-31T02:36:14"}
+{"event": "round_start", "round": 1, "algo": "fedavg", "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 1, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 1, "hospital": "H2", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 1, "hospital": "H3", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 1, "hospital": "H4", "samples": 10, "t": "2026-01-31T04:34:58"}
+{"event": "aggregate_done", "round": 1, "t": "2026-01-31T04:34:58"}
+{"event": "round_metrics", "round": 1, "accuracy": 0.61816019031267, "precision": 0.1780698952591553, "recall": 0.5255980300187617, "f1": 0.24696836113059517, "auc": 0.5260331293952898, "global_coef_head": [-0.05919523537158966, -0.01705220155417919, 0.06982193887233734, -0.006643019616603851, 0.007226371206343174], "global_intercept": -0.9294511079788208, "t": "2026-01-31T04:34:58"}
+{"event": "round_start", "round": 2, "algo": "fedavg", "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 2, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 2, "hospital": "H2", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 2, "hospital": "H3", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 2, "hospital": "H4", "samples": 10, "t": "2026-01-31T04:34:58"}
+{"event": "aggregate_done", "round": 2, "t": "2026-01-31T04:34:58"}
+{"event": "round_metrics", "round": 2, "accuracy": 0.807539693021764, "precision": 0.16498931385371143, "recall": 0.2781713459304923, "f1": 0.20637146316970878, "auc": 0.5337700835286705, "global_coef_head": [-0.03808918595314026, 0.010350426658987999, 0.06559844315052032, -0.018669437617063522, 0.012059377506375313], "global_intercept": -1.162479281425476, "t": "2026-01-31T04:34:58"}
+{"event": "round_start", "round": 3, "algo": "fedavg", "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 3, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 3, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 3, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 3, "hospital": "H4", "samples": 10, "t": "2026-01-31T04:34:58"}
+{"event": "aggregate_done", "round": 3, "t": "2026-01-31T04:34:58"}
+{"event": "round_metrics", "round": 3, "accuracy": 0.8311202567271377, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.5443013986708306, "global_coef_head": [-0.028055395931005478, 0.01351868361234665, 0.06920704245567322, -0.0222097747027874, 0.014820066280663013], "global_intercept": -1.3497425317764282, "t": "2026-01-31T04:34:58"}
+{"event": "round_start", "round": 4, "algo": "fedavg", "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 4, "hospital": "H1", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 4, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 4, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 4, "hospital": "H4", "samples": 10, "t": "2026-01-31T04:34:58"}
+{"event": "aggregate_done", "round": 4, "t": "2026-01-31T04:34:58"}
+{"event": "round_metrics", "round": 4, "accuracy": 0.8311202567271377, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.557037822411731, "global_coef_head": [-0.007257969118654728, -0.004404070787131786, 0.05044199153780937, -0.042541828006505966, 0.0017289705574512482], "global_intercept": -1.5174109935760498, "t": "2026-01-31T04:34:58"}
+{"event": "round_start", "round": 5, "algo": "fedavg", "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 5, "hospital": "H1", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 5, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 5, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:34:58"}
+{"event": "client_update", "round": 5, "hospital": "H4", "samples": 10, "t": "2026-01-31T04:34:58"}
+{"event": "aggregate_done", "round": 5, "t": "2026-01-31T04:34:58"}
+{"event": "round_metrics", "round": 5, "accuracy": 0.8311202567271377, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.5541474552419089, "global_coef_head": [-0.0033864423166960478, -0.006290317513048649, 0.06197284907102585, -0.0742509737610817, 0.007816986180841923], "global_intercept": -1.651153326034546, "t": "2026-01-31T04:34:58"}
+{"event": "round_start", "round": 1, "algo": "fedavg", "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 1, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 1, "hospital": "H2", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 1, "hospital": "H3", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "aggregate_done", "round": 1, "t": "2026-01-31T04:36:07"}
+{"event": "round_metrics", "round": 1, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.5569720345081138, "global_coef_head": [-0.027244260534644127, -0.00043741241097450256, 0.06302005052566528, -0.05923057720065117, 0.0034280819818377495], "global_intercept": -1.829321265220642, "t": "2026-01-31T04:36:07"}
+{"event": "round_start", "round": 2, "algo": "fedavg", "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 2, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 2, "hospital": "H2", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 2, "hospital": "H3", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "aggregate_done", "round": 2, "t": "2026-01-31T04:36:07"}
+{"event": "round_metrics", "round": 2, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.5792591170209417, "global_coef_head": [-0.02344357967376709, 0.03199829161167145, 0.05435784161090851, -0.043682944029569626, 0.0032027652487158775], "global_intercept": -1.9479504823684692, "t": "2026-01-31T04:36:07"}
+{"event": "round_start", "round": 3, "algo": "fedavg", "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 3, "hospital": "H1", "samples": 160, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 3, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 3, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "aggregate_done", "round": 3, "t": "2026-01-31T04:36:07"}
+{"event": "round_metrics", "round": 3, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6026351385732194, "global_coef_head": [-0.018531477078795433, 0.034129638224840164, 0.04691897705197334, -0.032457251101732254, -0.0005420607631094754], "global_intercept": -2.0473480224609375, "t": "2026-01-31T04:36:07"}
+{"event": "round_start", "round": 4, "algo": "fedavg", "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 4, "hospital": "H1", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 4, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 4, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "aggregate_done", "round": 4, "t": "2026-01-31T04:36:07"}
+{"event": "round_metrics", "round": 4, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6130979613186461, "global_coef_head": [0.00855831429362297, 0.015880193561315536, 0.022107861936092377, -0.029227564111351967, -0.025794461369514465], "global_intercept": -2.1493771076202393, "t": "2026-01-31T04:36:07"}
+{"event": "round_start", "round": 5, "algo": "fedavg", "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 5, "hospital": "H1", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 5, "hospital": "H2", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "client_update", "round": 5, "hospital": "H3", "samples": 159, "t": "2026-01-31T04:36:07"}
+{"event": "aggregate_done", "round": 5, "t": "2026-01-31T04:36:07"}
+{"event": "round_metrics", "round": 5, "accuracy": 0.9481603423028503, "precision": 0.0, "recall": 0.0, "f1": 0.0, "auc": 0.6227149443763285, "global_coef_head": [0.007578494027256966, 0.008983426727354527, 0.032363515347242355, -0.057562652975320816, -0.019229061901569366], "global_intercept": -2.2268226146698, "t": "2026-01-31T04:36:07"}
